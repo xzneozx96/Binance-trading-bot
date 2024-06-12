@@ -1,5 +1,6 @@
 const axios = require('axios');
 const { binanceApiBaseUrl } = require('../config/constant');
+const { sendFacebookMessage } = require('../services/send-message');
 const { logger } = require('./logger');
 
 let lastEvaluatedCandlesticks = {}; // Store candlestick data for all symbols
@@ -71,6 +72,7 @@ async function processTickerPrice(tickerData) {
 		const percentageChange = evaluateCandlesticks(symbol, onEvaluateCandleSticks);
 
 		// if recogize significant change, send noti over facebook immediately
+
 		if (Math.abs(percentageChange) > 2.5) {
 			sendFacebookMessage({
 				symbol,
@@ -104,7 +106,7 @@ async function fetchPreviousCandlesticks(symbol, endTime) {
 	}
 }
 
-async function evaluateCandlesticks(symbol, candlesticks) {
+function evaluateCandlesticks(symbol, candlesticks) {
 	if (candlesticks.length < 2) {
 		return; // Need at least two candlesticks to evaluate
 	}
