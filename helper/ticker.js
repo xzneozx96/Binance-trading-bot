@@ -1,6 +1,6 @@
 const axios = require('axios');
 const { binanceApiBaseUrl } = require('../config/constant');
-const { sendFacebookMessage } = require('../services/send-message');
+const { sendWhaleAlert } = require('../services/send-message');
 const { logger } = require('./logger');
 
 let lastEvaluatedCandlesticks = {}; // Store candlestick data for all symbols
@@ -73,7 +73,7 @@ async function processTickerPrice(tickerData) {
 		const isBigBoss = ['btnusdt', 'bnbusdt', 'ethusdt'].includes(symbol);
 
 		if ((isBigBoss && Math.abs(percentageChange) > 2.3) || (!isBigBoss && Math.abs(percentageChange) > 8)) {
-			sendFacebookMessage({
+			sendWhaleAlert({
 				symbol,
 				avgPrice: (parseFloat(highestPrice) + parseFloat(lowestPrice)) / 2,
 				kline: klineInterval,

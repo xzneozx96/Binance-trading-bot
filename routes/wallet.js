@@ -3,6 +3,6 @@ const router = express.Router();
 
 const walletController = require('../controllers/wallet');
 
-router.get('/accountSnapshot', walletController.getBalance);
+router.get('/total-balance', walletController.getBalance);
 
 module.exports = router;
