@@ -43,7 +43,7 @@ async function processTickerPrice(tickerData) {
 		lastEvaluatedCandlesticks[symbol] &&
 		lastEvaluatedCandlesticks[symbol]['lastEvaluatedStartTime'] === currentStartTime
 	) {
-		logger.info(`the timestamp ${currentStartTime} of symbol ${symbol} has already been evaluated`);
+		// logger.info(`the timestamp ${currentStartTime} of symbol ${symbol} has already been evaluated`);
 		return;
 	}
 
