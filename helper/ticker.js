@@ -39,10 +39,7 @@ async function processTickerPrice(tickerData) {
 
 	// check if the current start time has been evaluated or not
 	// Case 1: already evaluated => stop calculating
-	if (
-		lastEvaluatedCandlesticks[symbol] &&
-		lastEvaluatedCandlesticks[symbol]['lastEvaluatedStartTime'] === currentStartTime
-	) {
+	if (lastEvaluatedCandlesticks[symbol] && lastEvaluatedCandlesticks[symbol][klineInterval] === currentStartTime) {
 		// logger.info(`the timestamp ${currentStartTime} of symbol ${symbol} has already been evaluated`);
 		return;
 	}
@@ -51,7 +48,7 @@ async function processTickerPrice(tickerData) {
 	// 2.1. check if the currency has been evaluated or not
 	if (!lastEvaluatedCandlesticks[symbol]) {
 		lastEvaluatedCandlesticks[symbol] = {
-			lastEvaluatedStartTime: currentStartTime,
+			[klineInterval]: currentStartTime,
 			open: open,
 			close: close,
 		};
@@ -60,10 +57,10 @@ async function processTickerPrice(tickerData) {
 	logger.info('current candlestick', parsedData);
 
 	// 2.2. update the lastEvaluatedStartTime prop of the according ticker
-	lastEvaluatedCandlesticks[symbol]['lastEvaluatedStartTime'] = currentStartTime;
+	lastEvaluatedCandlesticks[symbol][klineInterval] = currentStartTime;
 
 	// 2.3. evaluate 2 candlesticks that come right before the current one
-	const onEvaluateCandleSticks = await fetchPreviousCandlesticks(symbol, currentStartTime);
+	const onEvaluateCandleSticks = await fetchPreviousCandlesticks(symbol, currentStartTime, klineInterval);
 
 	// logger.info(`the most 2 recent candlestick bars ${JSON.stringify(onEvaluateCandleSticks)}`);
 
@@ -72,23 +69,25 @@ async function processTickerPrice(tickerData) {
 		const percentageChange = evaluateCandlesticks(symbol, onEvaluateCandleSticks);
 
 		// if recogize significant change, send noti over facebook immediately
+		// if the symbol is BTC, BNB or ETH, send noti if percentageChange > 3
+		const isBigBoss = ['btnusdt', 'bnbusdt', 'ethusdt'].includes(symbol);
 
-		if (Math.abs(percentageChange) > 2.5) {
+		if ((isBigBoss && Math.abs(percentageChange) > 2.3) || (!isBigBoss && Math.abs(percentageChange) > 8)) {
 			sendFacebookMessage({
 				symbol,
-				avgPrice: (highestPrice + lowestPrice) / 2,
+				avgPrice: (parseFloat(highestPrice) + parseFloat(lowestPrice)) / 2,
 				kline: klineInterval,
 				percentageChange,
 			});
 		}
 	}
 }
-async function fetchPreviousCandlesticks(symbol, endTime) {
+async function fetchPreviousCandlesticks(symbol, endTime, klineInterval) {
 	try {
 		const response = await axios.get(binanceApiBaseUrl, {
 			params: {
 				symbol: symbol,
-				interval: '5m',
+				interval: klineInterval,
 				endTime: endTime,
 				limit: 3,
 			},
@@ -118,9 +117,11 @@ function evaluateCandlesticks(symbol, candlesticks) {
 
 	const percentageChange = (((laterCandle.close - previousCandle.open) / previousCandle.open) * 100).toFixed(2);
 
-	console.log(`Symbol: ${symbol}`);
-	console.log(`Previous candle is ${isPreviousCandleUp ? 'up' : 'down'}`);
-	console.log(`Later candle is ${isLaterCandleUp ? 'up' : 'down'}`);
+	console.log(
+		`Symbol: ${symbol} - Previous candle is ${isPreviousCandleUp ? 'up' : 'down'} - Later candle is ${
+			isLaterCandleUp ? 'up' : 'down'
+		}`
+	);
 	console.log(
 		'Percentage change:',
 		percentageChange > 0
