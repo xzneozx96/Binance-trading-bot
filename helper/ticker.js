@@ -74,7 +74,7 @@ async function processTickerPrice(tickerData) {
 		if (Math.abs(percentageChange) > 2.5) {
 			sendFacebookMessage({
 				symbol,
-				currentPrice: (highestPrice + lowestPrice) / 2,
+				avgPrice: (highestPrice + lowestPrice) / 2,
 				kline: klineInterval,
 				percentageChange,
 			});
