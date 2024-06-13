@@ -96,7 +96,7 @@ async function processTickerPrice(tickerData) {
     );
 
     if (
-      (isBigBoss && Math.abs(percentageChange) > 0.23) ||
+      (isBigBoss && Math.abs(percentageChange) > 2.3) ||
       (!isBigBoss && Math.abs(percentageChange) > 8)
     ) {
       // step 1: calculate the trade
