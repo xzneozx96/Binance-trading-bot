@@ -21,7 +21,7 @@ const verifyJWT = (req, res, next) => {
       // set the logged in user to the username stored in the token
       req.username = decoded_token.username;
       next();
-    }
+    },
   );
 };
 

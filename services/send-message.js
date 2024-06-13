@@ -2,7 +2,7 @@ const fbAccessToken =
 	'EAANpzAfMX6oBO9yHE0CjM1jqCVnk72wn6xJsVXM7leDHS6tK836cAjUDfi0FGC38WQNoQ4ZAN6qV99kdrMS0CnqxZB1z6Us9hTDnPmXz9DHfXN15dRkjmuqdyuSkWM89wy0sZAid83VD2TVpKv3wfZANafEhvMxCtHZCHQwXEI4OG72FIS0btNGrCoIa0ZBhMZD';
 
 const sendWhaleAlert = async (content) => {
-	const { symbol, avgPrice, percentageChange, kline } = content;
+	const { symbol, avgPrice, percentageChange, kline, orderType, openPrice, closePrice, stopLoss } = content;
 
 	const notiMsg = {
 		recipient: {
@@ -15,6 +15,11 @@ const sendWhaleAlert = async (content) => {
 - Average Price: ${avgPrice}
 - Kline Interval: ${kline}
 - Percentage Change: ${percentageChange}%
+- Trade Recommendation:
+	Open ${orderType}: ${openPrice.toFixed(2)},
+	Margin: x5,
+	Take profit: ${closePrice.toFixed(2)} (30%),
+	Stoploss: ${stopLoss.toFixed(2)} (25%)
       `,
 		},
 		messaging_type: 'MESSAGE_TAG',
