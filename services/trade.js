@@ -45,20 +45,11 @@ async function openSpotOrder({ symbol, side, type, price, qty }) {
 		};
 	}
 
-	const quantity = qty || currentUSDTBalance / price;
-
-	// Get symbol info to determine precision
-	const symbolInfo = await spotClient.exchangeInfo(symbol);
-	const { baseAssetPrecision } = symbolInfo.data.symbols.find(
-		(s) => s.symbol === symbol
-	);
-
-	// Format quantity to the allowed precision
-	const formattedQuantity = parseFloat(quantity.toFixed(baseAssetPrecision));
-
 	return spotClient.newOrder(symbol, side, type, {
-		quantity: Math.floor(formattedQuantity),
-		price,
+		// using quoteOrderQty, just need to tell Binance how much i'm willing to spend on buying the asset
+		// then, Binance will calculate the quantity itself
+		// this approach eliminates all unnecessary calculation
+		quoteOrderQty: currentUSDTBalance,
 		timeInForce: 'GTC',
 	});
 }

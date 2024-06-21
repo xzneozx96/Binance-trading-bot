@@ -98,7 +98,7 @@ async function processTickerPrice(tickerData) {
 
 		if (
 			(isBigBoss && Math.abs(percentageChange) > 2.3) ||
-			(!isBigBoss && Math.abs(percentageChange) > 4)
+			(!isBigBoss && Math.abs(percentageChange) > 5)
 		) {
 			// step 1: calculate the trade
 			const openPrice = getOpenPriceForFutureOrder({
@@ -132,7 +132,7 @@ async function processTickerPrice(tickerData) {
 				const response = await openSpotOrder({
 					symbol,
 					side: 'BUY',
-					type: 'LIMIT',
+					type: 'MARKET',
 					price: openPrice,
 				});
 
