@@ -51,7 +51,7 @@ const newSpotOrder = async (req, res) => {
 			price,
 		});
 
-		const takeProfit = price + price * 0.08; // 8% profit for BUY order
+		const takeProfit = price + price * 0.1; // 10% profit for BUY order
 
 		// send noti about the new trade
 		await sendOrderPlacementNoti({

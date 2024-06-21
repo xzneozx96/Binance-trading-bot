@@ -98,7 +98,7 @@ async function processTickerPrice(tickerData) {
 
 		if (
 			(isBigBoss && Math.abs(percentageChange) > 2.3) ||
-			(!isBigBoss && Math.abs(percentageChange) > 8)
+			(!isBigBoss && Math.abs(percentageChange) > 4)
 		) {
 			// step 1: calculate the trade
 			const openPrice = getOpenPriceForFutureOrder({
@@ -129,12 +129,26 @@ async function processTickerPrice(tickerData) {
 
 			// step 3: setup SPOT BUY if possible
 			if (isLaterCandleUp) {
-				await openSpotOrder({
+				const response = await openSpotOrder({
 					symbol,
 					side: 'BUY',
 					type: 'LIMIT',
 					price: openPrice,
 				});
+
+				const takeProfit = openPrice + openPrice * 0.1; // 10% profit for BUY order
+
+				// send noti about the new trade
+				await sendOrderPlacementNoti({
+					symbol,
+					side,
+					openPrice: openPrice,
+					takeProfit: takeProfit.toFixed(4),
+				});
+
+				// setup take_profit order once the order is FILLED
+				const { orderId } = response.data;
+				monitorSpotOrderStatus({ symbol, orderId, targetPrice: takeProfit });
 			}
 		}
 	}
