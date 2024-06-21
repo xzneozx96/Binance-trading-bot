@@ -2,7 +2,7 @@ const axios = require('axios');
 const { WebsocketStream } = require('@binance/connector');
 const { logger } = require('../helper/logger');
 const { binanceApiBaseUrl } = require('../config/constant');
-const { sendWhaleAlert } = require('./send-message');
+const { sendWhaleAlert, sendOrderPlacementNoti } = require('./send-message');
 const {
 	getClosePriceForFutureOrder,
 	getStopLossForFutureOrder,
