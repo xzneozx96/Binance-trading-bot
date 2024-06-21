@@ -50,7 +50,6 @@ async function openSpotOrder({ symbol, side, type, price, qty }) {
 		// then, Binance will calculate the quantity itself
 		// this approach eliminates all unnecessary calculation
 		quoteOrderQty: currentUSDTBalance,
-		timeInForce: 'GTC',
 	});
 }
 
