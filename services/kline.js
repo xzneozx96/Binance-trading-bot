@@ -141,7 +141,7 @@ async function processTickerPrice(tickerData) {
 				// send noti about the new trade
 				await sendOrderPlacementNoti({
 					symbol,
-					side,
+					side: 'BUY',
 					openPrice: openPrice,
 					takeProfit: takeProfit.toFixed(4),
 				});
