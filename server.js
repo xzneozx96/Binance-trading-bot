@@ -114,7 +114,8 @@ mongoose
 		usdtPairs.forEach((pair, index) => {
 			// if (index < 3) {
 			const { symbol } = pair;
-			websocketStreamClient.kline(symbol, '5m');
+			websocketStreamClient.kline(symbol, '3m');
+			// websocketStreamClient.kline(symbol, '5m');
 			// websocketStreamClient.kline(symbol, '15m');
 			// }
 		});

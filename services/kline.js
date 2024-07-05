@@ -8,6 +8,7 @@ const {
 	getStopLossForFutureOrder,
 	getOpenPriceForFutureOrder,
 	openSpotOrder,
+	monitorSpotOrderStatus,
 } = require('./trade');
 
 let lastEvaluatedCandlesticks = {}; // Store candlestick data for all symbols
