@@ -64,14 +64,7 @@ async function openSpotOrder({ symbol, side, type, price, qty }) {
 						timeInForce: 'GTC',
 				  };
 
-		const newOrderResult = await spotClient.newOrder(
-			symbol,
-			side,
-			type,
-			command
-		);
-
-		return newOrderResult;
+		return spotClient.newOrder(symbol, side, type, command);
 	} catch (err) {
 		console.error(err.data.message);
 		throw new Error(err.data.msg);

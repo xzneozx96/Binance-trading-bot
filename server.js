@@ -112,11 +112,11 @@ mongoose
 	.then(() => {
 		// subscribe to Binance tickers
 		usdtPairs.forEach((pair, index) => {
-			if (index < 3) {
-				const { symbol } = pair;
-				websocketStreamClient.kline(symbol, '5m');
-				// websocketStreamClient.kline(symbol, '15m');
-			}
+			// if (index < 3) {
+			const { symbol } = pair;
+			websocketStreamClient.kline(symbol, '5m');
+			// websocketStreamClient.kline(symbol, '15m');
+			// }
 		});
 	})
 	.catch((err) => {
