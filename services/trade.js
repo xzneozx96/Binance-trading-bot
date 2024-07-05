@@ -79,7 +79,7 @@ async function monitorSpotOrderStatus({ symbol, orderId, targetPrice }) {
 
 		const spotOrder = orderStatusRes.data;
 
-		const { status, origQty } = spotOrder;
+		const { status, executedQty } = spotOrder;
 
 		// if the order has been triggered, setup another order that will sell at target price
 		if (status === 'FILLED') {
@@ -93,7 +93,7 @@ async function monitorSpotOrderStatus({ symbol, orderId, targetPrice }) {
 				side,
 				type,
 				price: targetPrice,
-				qty: origQty,
+				qty: parseFloat(executedQty),
 			});
 
 			console.log('sellOrderResult', sellOrderResult);
