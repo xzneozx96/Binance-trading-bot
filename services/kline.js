@@ -98,7 +98,7 @@ async function processTickerPrice(tickerData) {
 
 		if (
 			(isBigBoss && Math.abs(percentageChange) > 2.3) ||
-			(!isBigBoss && Math.abs(percentageChange) > 5)
+			(!isBigBoss && Math.abs(percentageChange) > 7)
 		) {
 			// step 1: calculate the trade
 			const openPrice = getOpenPriceForFutureOrder({
@@ -136,7 +136,7 @@ async function processTickerPrice(tickerData) {
 					price: openPrice,
 				});
 
-				const takeProfit = openPrice + openPrice * 0.1; // 10% profit for BUY order
+				const takeProfit = openPrice + openPrice * 0.05; // 5% profit for BUY order
 
 				// send noti about the new trade
 				await sendOrderPlacementNoti({

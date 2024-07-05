@@ -27,30 +27,55 @@ async function openFutureOrder({ symbol, side, type, quantity, price }) {
 }
 
 async function openSpotOrder({ symbol, side, type, price, qty }) {
-	if (!symbol || !side || !price || !type)
-		return {
-			success: false,
-			msg: 'No symbol/side/price/type was provided',
-		};
+	try {
+		if (!symbol || !side || !price || !type)
+			return {
+				success: false,
+				msg: 'No symbol/side/price/type was provided',
+			};
 
-	const currentUSDTBalance = await getSpotUSDTBalance();
+		const currentUSDTBalance = await getSpotUSDTBalance();
 
-	if (currentUSDTBalance < 5) {
+		if (currentUSDTBalance < 5 && side === 'BUY') {
+			console.log(
+				'Your Spot USDT is less than 10$. Not enough to place any order'
+			);
+			return {
+				success: false,
+				msg: 'Your Spot USDT is less than 10$. Not enough to place any order',
+			};
+		}
+
 		console.log(
-			'Your Spot USDT is less than 10$. Not enough to place any order'
+			`about to sell ${symbol}, take profit at ${price}, the amount is ${qty}`
 		);
-		return {
-			success: false,
-			msg: 'Your Spot USDT is less than 10$. Not enough to place any order',
-		};
-	}
 
-	return spotClient.newOrder(symbol, side, type, {
-		// using quoteOrderQty, just need to tell Binance how much i'm willing to spend on buying the asset
-		// then, Binance will calculate the quantity itself
-		// this approach eliminates all unnecessary calculation
-		quoteOrderQty: currentUSDTBalance,
-	});
+		const command =
+			side === 'BUY'
+				? {
+						// using quoteOrderQty, just need to tell Binance how much i'm willing to spend on buying the asset
+						// then, Binance will calculate the quantity itself
+						// this approach eliminates all unnecessary calculation
+						quoteOrderQty: currentUSDTBalance,
+				  }
+				: {
+						price,
+						quantity: qty,
+						timeInForce: 'GTC',
+				  };
+
+		const newOrderResult = await spotClient.newOrder(
+			symbol,
+			side,
+			type,
+			command
+		);
+
+		return newOrderResult;
+	} catch (err) {
+		console.error(err.data.message);
+		throw new Error(err.data.msg);
+	}
 }
 
 async function monitorSpotOrderStatus({ symbol, orderId, targetPrice }) {
@@ -68,12 +93,22 @@ async function monitorSpotOrderStatus({ symbol, orderId, targetPrice }) {
 			const side = 'SELL';
 			const type = 'LIMIT';
 
-			await openSpotOrder({ symbol, side, type, targetPrice, qty: origQty });
+			console.log('sell order has been placed');
+
+			const sellOrderResult = await openSpotOrder({
+				symbol,
+				side,
+				type,
+				price: targetPrice,
+				qty: origQty,
+			});
+
+			console.log('sellOrderResult', sellOrderResult);
 		}
 		// otherwise, check the order status every 1m
 		else {
 			console.log('Buy order not filled yet. Checking again in 1 minute...');
-			setTimeout(checkOrderStatus, 60000); // Check again in 10 seconds
+			setTimeout(checkOrderStatus, 3000); // Check again in 10 seconds
 		}
 	};
 

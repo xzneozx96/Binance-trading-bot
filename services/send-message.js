@@ -1,3 +1,5 @@
+const axios = require('axios');
+
 const fbAccessToken =
 	'EAANpzAfMX6oBO9yHE0CjM1jqCVnk72wn6xJsVXM7leDHS6tK836cAjUDfi0FGC38WQNoQ4ZAN6qV99kdrMS0CnqxZB1z6Us9hTDnPmXz9DHfXN15dRkjmuqdyuSkWM89wy0sZAid83VD2TVpKv3wfZANafEhvMxCtHZCHQwXEI4OG72FIS0btNGrCoIa0ZBhMZD';
 
@@ -98,16 +100,18 @@ const sendOrderPlacementNoti = async (content) => {
 	console.log('about to send msg', JSON.stringify(notiMsg));
 
 	const url = `https://graph.facebook.com/v19.0/me/messages?access_token=${fbAccessToken}`;
-	const params = {
-		method: 'POST',
-		body: JSON.stringify(notiMsg),
-		headers: { 'Content-Type': 'application/json' },
-	};
 
-	const req = await fetch(url, params);
-	const body = await req.json();
-
-	console.log('send msg success', body);
+	try {
+		const response = await axios.post(url, notiMsg, {
+			headers: { 'Content-Type': 'application/json' },
+		});
+		console.log('send msg success', response.data);
+	} catch (error) {
+		console.error(
+			'Error sending message:',
+			error.response ? error.response.data : error.message
+		);
+	}
 };
 
 module.exports = { sendWhaleAlert, sendBalanceReport, sendOrderPlacementNoti };

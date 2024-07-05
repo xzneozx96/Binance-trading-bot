@@ -63,6 +63,7 @@ const newSpotOrder = async (req, res) => {
 
 		// setup take_profit order once the order is FILLED
 		const { orderId } = response.data;
+
 		monitorSpotOrderStatus({ symbol, orderId, targetPrice: takeProfit });
 
 		return res.status(201).json({
@@ -72,6 +73,8 @@ const newSpotOrder = async (req, res) => {
 			},
 		});
 	} catch (err) {
+		console.log(err);
+
 		const errorMsg = err.response ? err.response.data : err.data.msg;
 		return res.status(500).json({ success: false, ...errorMsg });
 	}
