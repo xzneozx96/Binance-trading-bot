@@ -51,20 +51,22 @@ const newSpotOrder = async (req, res) => {
 			price,
 		});
 
-		const takeProfit = price + price * 0.1; // 10% profit for BUY order
+		const takeProfit = price + price * 0.05; // 5% profit for BUY order
 
-		// send noti about the new trade
-		await sendOrderPlacementNoti({
-			symbol,
-			side,
-			openPrice: price,
-			takeProfit: takeProfit.toFixed(4),
-		});
-
-		// setup take_profit order once the order is FILLED
 		const { orderId } = response.data;
 
-		monitorSpotOrderStatus({ symbol, orderId, targetPrice: takeProfit });
+		if (orderId) {
+			// send noti about the new trade
+			await sendOrderPlacementNoti({
+				symbol,
+				side,
+				openPrice: price,
+				takeProfit: takeProfit.toFixed(4),
+			});
+
+			// setup take_profit order once the order is FILLED
+			monitorSpotOrderStatus({ symbol, orderId, targetPrice: takeProfit });
+		}
 
 		return res.status(201).json({
 			success: true,

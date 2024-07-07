@@ -139,17 +139,20 @@ async function processTickerPrice(tickerData) {
 
 				const takeProfit = openPrice + openPrice * 0.05; // 5% profit for BUY order
 
-				// send noti about the new trade
-				await sendOrderPlacementNoti({
-					symbol,
-					side: 'BUY',
-					openPrice: openPrice,
-					takeProfit: takeProfit.toFixed(4),
-				});
-
-				// setup take_profit order once the order is FILLED
 				const { orderId } = response.data;
-				monitorSpotOrderStatus({ symbol, orderId, targetPrice: takeProfit });
+
+				if (orderId) {
+					// send noti about the new trade
+					await sendOrderPlacementNoti({
+						symbol,
+						side: 'BUY',
+						openPrice: openPrice,
+						takeProfit: takeProfit.toFixed(4),
+					});
+
+					// setup take_profit order once the order is FILLED
+					monitorSpotOrderStatus({ symbol, orderId, targetPrice: takeProfit });
+				}
 			}
 		}
 	}

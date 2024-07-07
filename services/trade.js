@@ -50,6 +50,8 @@ async function openSpotOrder({ symbol, side, type, price, qty }) {
 			`about to sell ${symbol}, take profit at ${price}, the amount is ${qty}`
 		);
 
+		const formattedPrice = await formatPriceToRequiredPrecision(symbol, price);
+
 		const command =
 			side === 'BUY'
 				? {
@@ -59,15 +61,18 @@ async function openSpotOrder({ symbol, side, type, price, qty }) {
 						quoteOrderQty: currentUSDTBalance,
 				  }
 				: {
-						price,
+						price: formattedPrice,
 						quantity: qty,
 						timeInForce: 'GTC',
 				  };
 
 		return spotClient.newOrder(symbol, side, type, command);
 	} catch (err) {
-		console.error(err.data.message);
-		throw new Error(err.data.msg);
+		if (err.data.msg) {
+			throw new Error(err.data.msg);
+		} else {
+			throw new Error(err);
+		}
 	}
 }
 
@@ -106,6 +111,27 @@ async function monitorSpotOrderStatus({ symbol, orderId, targetPrice }) {
 	};
 
 	checkOrderStatus();
+}
+
+async function formatPriceToRequiredPrecision(symbol, price) {
+	const response = await spotClient.exchangeInfo();
+	const symbolInfo = response.data.symbols.find((s) => s.symbol === symbol);
+
+	// Get the allowed precision for price and quantity
+	const pricePrecision = symbolInfo.filters.find(
+		(f) => f.filterType === 'PRICE_FILTER'
+	).tickSize;
+	const lotSizePrecision = symbolInfo.filters.find(
+		(f) => f.filterType === 'LOT_SIZE'
+	).stepSize;
+
+	// Convert precision to number of decimal places
+	const priceDecimals = Math.log10(1 / parseFloat(pricePrecision));
+	const quantityDecimals = Math.log10(1 / parseFloat(lotSizePrecision));
+
+	const formattedPrice = parseFloat(price).toFixed(priceDecimals);
+
+	return formattedPrice;
 }
 
 function getOpenPriceForFutureOrder({ laterCandle, isLaterCandleUp }) {
