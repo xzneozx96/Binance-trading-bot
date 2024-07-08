@@ -137,7 +137,7 @@ async function processTickerPrice(tickerData) {
 					price: openPrice,
 				});
 
-				const takeProfit = openPrice + openPrice * 0.05; // 5% profit for BUY order
+				const takeProfit = openPrice + openPrice * 0.035; // 5% profit for BUY order
 
 				const { orderId } = response.data;
 
