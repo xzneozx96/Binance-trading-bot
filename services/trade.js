@@ -2,6 +2,7 @@ const config = require('../config');
 const { UMFutures } = require('@binance/futures-connector');
 const { Spot } = require('@binance/connector');
 const { getSpotUSDTBalance } = require('./balance');
+const { sendOrderPlacementNoti } = require('./send-message');
 
 const apiKey = config.binancePublic;
 const apiSecret = config.binanceSecret;
@@ -84,14 +85,19 @@ async function monitorSpotOrderStatus({ symbol, orderId, targetPrice }) {
 
 		const spotOrder = orderStatusRes.data;
 
-		const { status, executedQty } = spotOrder;
+		const { status, executedQty, price: entryPrice } = spotOrder;
 
 		// if the order has been triggered, setup another order that will sell at target price
 		if (status === 'FILLED') {
 			const side = 'SELL';
 			const type = 'LIMIT';
 
-			console.log('sell order has been placed');
+			sendOrderPlacementNoti({
+				symbol,
+				side: 'SELL',
+				openPrice: entryPrice,
+				takeProfit: targetPrice.toFixed(4),
+			});
 
 			const sellOrderResult = await openSpotOrder({
 				symbol,
@@ -106,7 +112,7 @@ async function monitorSpotOrderStatus({ symbol, orderId, targetPrice }) {
 		// otherwise, check the order status every 1m
 		else {
 			console.log('Buy order not filled yet. Checking again in 1 minute...');
-			setTimeout(checkOrderStatus, 3000); // Check again in 10 seconds
+			setTimeout(checkOrderStatus, 1000); // Check again every seconds
 		}
 	};
 

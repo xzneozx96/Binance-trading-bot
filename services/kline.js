@@ -143,7 +143,7 @@ async function processTickerPrice(tickerData) {
 
 				if (orderId) {
 					// send noti about the new trade
-					await sendOrderPlacementNoti({
+					sendOrderPlacementNoti({
 						symbol,
 						side: 'BUY',
 						openPrice: openPrice,
