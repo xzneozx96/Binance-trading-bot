@@ -201,9 +201,6 @@ const usdtPairs = [
 		symbol: 'stormusdt',
 	},
 	{
-		symbol: 'dockusdt',
-	},
-	{
 		symbol: 'wanusdt',
 	},
 	{

@@ -53,23 +53,20 @@ async function openSpotOrder({ symbol, side, type, price, qty }) {
 
 		const formattedPrice = await formatPriceToRequiredPrecision(symbol, price);
 
-		const command =
-			side === 'BUY'
-				? {
-						// using quoteOrderQty, just need to tell Binance how much i'm willing to spend on buying the asset
-						// then, Binance will calculate the quantity itself
-						// this approach eliminates all unnecessary calculation
-						quoteOrderQty: currentUSDTBalance,
-				  }
-				: {
-						price: formattedPrice,
-						quantity: qty,
-						timeInForce: 'GTC',
-				  };
+		const formattedQuantity = qty
+			? qty
+			: await formatQtyToRequiredPrecision(
+					symbol,
+					(currentUSDTBalance - 0.5) / price
+			  );
 
-		return spotClient.newOrder(symbol, side, type, command);
+		return spotClient.newOrder(symbol, side, type, {
+			price: formattedPrice,
+			quantity: formattedQuantity,
+			timeInForce: 'GTC',
+		});
 	} catch (err) {
-		if (err.data.msg) {
+		if (err.data && err.data.msg) {
 			throw new Error(err.data.msg);
 		} else {
 			throw new Error(err);
@@ -89,6 +86,8 @@ async function monitorSpotOrderStatus({ symbol, orderId, targetPrice }) {
 
 		// if the order has been triggered, setup another order that will sell at target price
 		if (status === 'FILLED') {
+			clearInterval(orderCheckInterval);
+
 			const side = 'SELL';
 			const type = 'LIMIT';
 
@@ -109,13 +108,9 @@ async function monitorSpotOrderStatus({ symbol, orderId, targetPrice }) {
 
 			console.log('sellOrderResult', sellOrderResult);
 		}
-		// otherwise, check the order status every 1m
-		else {
-			console.log('Buy order not filled yet. Checking again in 1 minute...');
-			setTimeout(checkOrderStatus, 1000); // Check again every seconds
-		}
 	};
 
+	const orderCheckInterval = setInterval(checkOrderStatus, 10000);
 	checkOrderStatus();
 }
 
@@ -127,17 +122,30 @@ async function formatPriceToRequiredPrecision(symbol, price) {
 	const pricePrecision = symbolInfo.filters.find(
 		(f) => f.filterType === 'PRICE_FILTER'
 	).tickSize;
+
+	// Convert precision to number of decimal places
+	const priceDecimals = Math.log10(1 / parseFloat(pricePrecision));
+
+	const formattedPrice = parseFloat(price).toFixed(priceDecimals);
+
+	return formattedPrice;
+}
+
+async function formatQtyToRequiredPrecision(symbol, qty) {
+	const response = await spotClient.exchangeInfo();
+	const symbolInfo = response.data.symbols.find((s) => s.symbol === symbol);
+
+	// Get the allowed precision for quantity
 	const lotSizePrecision = symbolInfo.filters.find(
 		(f) => f.filterType === 'LOT_SIZE'
 	).stepSize;
 
 	// Convert precision to number of decimal places
-	const priceDecimals = Math.log10(1 / parseFloat(pricePrecision));
 	const quantityDecimals = Math.log10(1 / parseFloat(lotSizePrecision));
 
-	const formattedPrice = parseFloat(price).toFixed(priceDecimals);
+	const formattedQty = parseFloat(qty).toFixed(quantityDecimals);
 
-	return formattedPrice;
+	return formattedQty;
 }
 
 function getOpenPriceForFutureOrder({ laterCandle, isLaterCandleUp }) {
