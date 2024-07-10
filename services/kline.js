@@ -9,6 +9,7 @@ const {
 	getOpenPriceForFutureOrder,
 	openSpotOrder,
 	monitorSpotOrderStatus,
+	getCurrentPrice,
 } = require('./trade');
 
 let lastEvaluatedCandlesticks = {}; // Store candlestick data for all symbols
@@ -99,7 +100,7 @@ async function processTickerPrice(tickerData) {
 
 		if (
 			(isBigBoss && Math.abs(percentageChange) > 2.3) ||
-			(!isBigBoss && Math.abs(percentageChange) > 6)
+			(!isBigBoss && Math.abs(percentageChange) > 7)
 		) {
 			// step 1: calculate the trade
 			const openPrice = getOpenPriceForFutureOrder({
@@ -130,14 +131,21 @@ async function processTickerPrice(tickerData) {
 
 			// step 3: setup SPOT BUY if possible
 			if (isLaterCandleUp) {
+				const currentPriceAsStr = await getCurrentPrice(symbol);
+				const currentPrice = parseFloat(currentPriceAsStr);
+
+				// get the lenght of decimal part of the currentPrice
+				const currentPriceDecimalLength =
+					currentPriceAsStr.split('.')[1].length;
+
 				const response = await openSpotOrder({
 					symbol,
 					side: 'BUY',
 					type: 'LIMIT',
-					price: openPrice,
+					price: currentPrice,
 				});
 
-				const takeProfit = openPrice + openPrice * 0.05; // 5% profit for BUY order
+				const takeProfit = currentPrice + currentPrice * 0.035; // 3.5% profit for BUY order
 
 				const { orderId } = response.data;
 
@@ -146,8 +154,8 @@ async function processTickerPrice(tickerData) {
 					sendOrderPlacementNoti({
 						symbol,
 						side: 'BUY',
-						openPrice: openPrice.toFixed(6),
-						takeProfit: takeProfit.toFixed(6),
+						openPrice: currentPrice,
+						takeProfit: takeProfit.toFixed(currentPriceDecimalLength),
 					});
 
 					// setup take_profit order once the order is FILLED

@@ -94,8 +94,8 @@ async function monitorSpotOrderStatus({ symbol, orderId, targetPrice }) {
 			sendOrderPlacementNoti({
 				symbol,
 				side: 'SELL',
-				openPrice: entryPrice,
-				takeProfit: targetPrice.toFixed(4),
+				openPrice: parseFloat(entryPrice),
+				takeProfit: targetPrice,
 			});
 
 			const sellOrderResult = await openSpotOrder({
@@ -106,7 +106,7 @@ async function monitorSpotOrderStatus({ symbol, orderId, targetPrice }) {
 				qty: parseFloat(executedQty),
 			});
 
-			console.log('sellOrderResult', sellOrderResult);
+			console.log('sellOrderResult', sellOrderResult.data);
 		}
 	};
 
@@ -146,6 +146,13 @@ async function formatQtyToRequiredPrecision(symbol, qty) {
 	const formattedQty = parseFloat(qty).toFixed(quantityDecimals);
 
 	return formattedQty;
+}
+
+async function getCurrentPrice(symbol) {
+	const response = await spotClient.tickerPrice(symbol);
+	const latestPrice = response.data.price;
+
+	return latestPrice;
 }
 
 function getOpenPriceForFutureOrder({ laterCandle, isLaterCandleUp }) {
@@ -189,6 +196,7 @@ module.exports = {
 	openFutureOrder,
 	openSpotOrder,
 	monitorSpotOrderStatus,
+	getCurrentPrice,
 	getOpenPriceForFutureOrder,
 	getClosePriceForFutureOrder,
 	getStopLossForFutureOrder,

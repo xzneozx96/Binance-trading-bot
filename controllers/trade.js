@@ -3,6 +3,7 @@ const {
 	openFutureOrder,
 	openSpotOrder,
 	monitorSpotOrderStatus,
+	getCurrentPrice,
 } = require('../services/trade');
 
 const newFutureOrder = async (req, res) => {
@@ -44,11 +45,17 @@ const newSpotOrder = async (req, res) => {
 
 		const { symbol, side, type, price } = body;
 
+		const currentPriceAsStr = await getCurrentPrice(symbol);
+		const currentPrice = parseFloat(currentPriceAsStr);
+
+		// get the lenght of decimal part of the currentPrice
+		const currentPriceDecimalLength = currentPriceAsStr.split('.')[1].length;
+
 		const response = await openSpotOrder({
 			symbol,
 			side,
 			type,
-			price,
+			price: currentPrice,
 		});
 
 		if (!response.data && !response.success) {
@@ -58,7 +65,7 @@ const newSpotOrder = async (req, res) => {
 			});
 		}
 
-		const takeProfit = price + price * 0.05; // 5% profit for BUY order
+		const takeProfit = currentPrice + currentPrice * 0.05; // 5% profit for BUY order
 
 		const { orderId } = response.data;
 
@@ -67,8 +74,8 @@ const newSpotOrder = async (req, res) => {
 			await sendOrderPlacementNoti({
 				symbol,
 				side,
-				openPrice: price.toFixed(6),
-				takeProfit: takeProfit.toFixed(6),
+				openPrice: currentPrice,
+				takeProfit: takeProfit.toFixed(currentPriceDecimalLength),
 			});
 
 			// setup take_profit order once the order is FILLED
